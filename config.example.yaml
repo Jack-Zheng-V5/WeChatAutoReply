@@ -1,0 +1,47 @@
+# 配置模板：复制为 config.yaml 后按需修改（config.yaml 不入库）
+# 各项缺省值见 config.py DEFAULTS，此处只需覆盖需要改的项
+
+send_enabled: false          # 发送总开关：false=干跑（回复只写日志）；true=真实发送（五道闸门生效）
+
+send:
+  retry: 2                   # 发送失败重试次数（DESIGN.md §11），仍失败转人工
+
+scan:
+  interval_seconds: 2.0      # 扫描间隔（DESIGN.md §11：1~2 秒）
+  phash_threshold: 2         # pHash 汉明距离 ≤ 此值视为画面无变化，跳过本周期
+  force_rescan_seconds: 600  # 定期强制全量重扫：兜底未知的画面冻结模式（锁屏/息屏等），
+                             # 把静默漏检上界压到此时长
+
+ocr:
+  bubble_min_avg_score: 0.70 # 闸门 2：气泡 OCR 平均置信度低于此值不回（长文本）
+  bubble_min_avg_score_short: 0.55 # 闸门 2：短文本（≤short_text_max_len 字）阈值
+  short_text_max_len: 6
+
+llm:
+  base_url: https://open.bigmodel.cn/api/paas/v4  # OpenAI 兼容端点，可换 DeepSeek/Kimi/通义/Ollama
+  api_key: ""                # 智谱开放平台申请（https://open.bigmodel.cn）；只存本地不入库；空 = 仅记录不生成
+  model: glm-4-flash
+  temperature: 0.7
+  system_prompt: ""          # 全局人设/业务说明，空 = 内置默认；每联系人可用 whitelist.contacts.X.prompt 覆盖
+  ctx_max_messages: 20       # 上下文滑动窗口条数（约 8~10 轮）
+  reply_signature: "🤖"      # AI 回复标志：程序强制附加在每条回复结尾（客户可一眼识别 AI）；空 = 不添加
+
+safety:                      # 闸门 3/4（DESIGN.md §8）
+  banned_words: [退款, 退货, 投诉, 报警, 骗子, 律师, "12315", 工商]  # 数字词必须加引号，否则 YAML 解析成整数
+  reply_min_interval: 30     # 同联系人最小回复间隔（秒）+ reply_jitter 随机抖动
+  reply_jitter: 5
+  daily_per_contact: 50      # 每联系人每日回复上限
+  daily_global: 200          # 全局每日回复上限
+  night_start: 23            # 夜间免扰 23:00–08:00：只记录不发送
+  night_end: 8
+
+whitelist:
+  mode: list                 # list=仅名单内会话；all_contacts=所有非群聊 1对1 自动回复
+                             # （群聊按顶栏名成员数后缀自动排除；enabled:false 条目=黑名单）
+  match_ratio: 0.75          # 闸门 1：模糊匹配阈值（容忍 OCR 认错 1 字）
+  match_all: false           # 测试模式：true = 所有会话（含群聊）视为白名单，仅供 M2 干跑测试；
+                             # 与 send_enabled 互斥（同时开启主循环拒绝启动），测完务必改回 false
+  contacts:
+    # 某联系人名:
+    #   enabled: true
+    #   prompt: 个性化提示词（M3 起使用）

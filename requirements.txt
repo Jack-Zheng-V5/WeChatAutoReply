@@ -1,0 +1,10 @@
+# M1 校准工具依赖（DESIGN.md §3.1 / AGENTS.md 命令约定）
+# Python 3.14.3 —— cp314 预编译轮子可用性本身是 M1 验证项，安装结果记入 Progress.md
+# 注意：不引入 pywin32——无 cp314 轮子（M1 实测），Win32 调用统一走 vision/capture.py 的 ctypes 封装
+numpy>=2.0
+Pillow>=11.0                  # imagehash 的依赖
+opencv-python-headless>=4.10  # 颜色掩码/模板匹配（headless：项目不需要 cv2 GUI）
+imagehash>=4.3                # pHash 变化检测（§3-②），M1 用于双捕获一致性对比
+rapidocr-onnxruntime>=1.2.3   # M2 OCR 引擎（PP-OCR 中文模型，输出置信度；onnxruntime 1.30 有 cp314 轮子，2026-09-19 验证）
+PyYAML>=6.0                   # config.yaml 加载（config.py）
+pytest>=8.0                   # 单测（state/safety/llm 层，AGENTS.md 约定）；2026-09-26 安装 19 用例全过
