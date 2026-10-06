@@ -122,6 +122,7 @@ send_enabled=true，白名单=文件传输助手+香梅（含个性化提示词�
 | 2026-09-27 | **群聊修复验证 PASS，发送恢复** | 用户重发群消息验证：日志出现 `[群聊忽略] 顶栏含成员数后缀…` 符合预期 → send_enabled=true 恢复，全自动运行重启。事故闭环：根因（裁剪截断）→ 三层修复（全宽判定/规则收紧/气泡上方昵称检测）→ 干跑验证 → 恢复上线 | config.yaml、用户验证 |
 | 2026-09-27 | **"对方正在输入"假身份事故（已修，重启生效）** | 对方打字时微信 4.x 顶栏以"对方正在输入…"**代替**会话名 → all_contacts 模式将其收为身份放行：本日 18:59:02/19:01:11 两条真实发送 contact 均错记为"对方正在输入"（实发用户测试会话"微信ClawBot"，无陌生误发）。三重危害：审计身份错记、闸门 4 频控按身份记账被别名绕过、群聊排除跑在瞬态文本上。活跃打字期 2.5 分钟触发 4 次。修复：`whitelist.is_transient_top_bar`（"正在输入"子串，fail-closed）前置拦截红点/打开会话两路径（顶栏全宽 + 名字裁剪双读数均查），命中即跳过本轮；红点已被点击消耗 → 打开会话路径（5s 节流）在对方停止打字后补处理，仅延迟不丢失。新增 3 测试，42 用例全过。已知残留：OCR 若把"输入"误读为同形字则漏拦（观测读数均精确，暂不防御，根治=锚点模板 M5） | logs/main_20260927_185858.log、data/audit.db |
 | 2026-09-26 | 阈值数据补充 | "好滴刚看了-下电池没电了"（11 字）0.694 被拦，读数疑似正确——短文本误拦样本累计 5 个，长度分级阈值（短文本放宽至 ~0.55）待验收后实施 | 同上日志 08:22 |
+| 2026-10-07 | **代码首次入库 GitHub** | 39 个文件（代码+文档+config.example.yaml）以初始提交 630499e 推送至 github.com/Jack-Zheng-V5/WeChatAutoReply main 分支。推送前核验：.gitignore 已正确排除 config.yaml/captures/data/logs/templates（铁律 8），example 配置 api_key 为空占位。环境事实：本机 HTTPS 直连 github.com 不通（connection reset/443 连接失败），常见本地代理端口均不可用；**远程 origin 已固定为 SSH 协议**（git@github.com，22 与 ssh.github.com:443 均通，ed25519 密钥已认证为 Jack-Zheng-V5）——后续推拉直接用 git 即可，勿改回 HTTPS。git 身份仅仓库级配置（Jack-Zheng-V5 + noreply 邮箱） | .gitignore、git remote origin |
 
 ## 待人工核对
 
